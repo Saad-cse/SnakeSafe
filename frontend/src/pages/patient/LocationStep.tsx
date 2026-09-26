@@ -66,10 +66,20 @@ export const LocationStep: React.FC = () => {
     );
   };
 
-  const handleConfirmLocation = () => {
+  const [isConfirming, setIsConfirming] = useState<boolean>(false);
+
+  const handleConfirmLocation = async () => {
+    if (isConfirming) return;
+    setIsConfirming(true);
     const finalAddress = manualMode ? manualInput : address;
-    updateLocation(latitude, longitude, finalAddress);
-    navigate('/patient/snake-id');
+    try {
+      await updateLocation(latitude, longitude, finalAddress);
+      navigate('/patient/snake-id');
+    } catch (err) {
+      console.error('Failed to save location:', err);
+      setErrorMsg("Couldn't save your location — please try again.");
+      setIsConfirming(false);
+    }
   };
 
   return (
@@ -198,9 +208,10 @@ export const LocationStep: React.FC = () => {
           <button
             type="button"
             onClick={handleConfirmLocation}
-            className="flex-1 py-3.5 px-6 bg-brand-red hover:bg-brand-darkRed text-white font-extrabold rounded-xl shadow-lg transition-all text-sm flex items-center justify-center space-x-2"
+            disabled={isConfirming}
+            className="flex-1 py-3.5 px-6 bg-brand-red hover:bg-brand-darkRed text-white font-extrabold rounded-xl shadow-lg transition-all text-sm flex items-center justify-center space-x-2 disabled:opacity-60"
           >
-            <span>Confirm & Continue</span>
+            <span>{isConfirming ? 'Saving...' : 'Confirm & Continue'}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>

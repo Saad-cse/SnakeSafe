@@ -63,21 +63,30 @@ export const BiteAssessmentStep: React.FC = () => {
     return 'HIGH';
   };
 
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const urgency = calculateUrgency();
     setShowUrgencyBanner(true);
-    
+    setSubmitError(null);
+
     // Auto transition to Hospital Finder after showing the urgency warning
-    setTimeout(() => {
-      submitBiteAssessment({
-        biteTime,
-        biteLocation,
-        symptoms: selectedSymptoms,
-        notes,
-        urgencyLevel: urgency
-      });
-      navigate('/patient/hospitals');
+    setTimeout(async () => {
+      try {
+        await submitBiteAssessment({
+          biteTime,
+          biteLocation,
+          symptoms: selectedSymptoms,
+          notes,
+          urgencyLevel: urgency
+        });
+        navigate('/patient/hospitals');
+      } catch (err) {
+        console.error('Failed to save bite assessment:', err);
+        setShowUrgencyBanner(false);
+        setSubmitError("Couldn't save your assessment — please try again.");
+      }
     }, 1100);
   };
 
@@ -214,14 +223,19 @@ export const BiteAssessmentStep: React.FC = () => {
 
         {/* Submit Button */}
         {!showUrgencyBanner && (
-          <div className="pt-2 flex justify-end">
-            <button
-              type="submit"
-              className="w-full sm:w-auto py-3.5 px-8 bg-brand-red hover:bg-brand-darkRed text-white font-extrabold rounded-xl shadow-lg transition-all text-sm flex items-center justify-center space-x-2"
-            >
-              <span>Submit Assessment & Find Hospitals</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
+          <div className="pt-2">
+            {submitError && (
+              <p className="text-xs text-red-700 font-semibold mb-2 text-right">{submitError}</p>
+            )}
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                className="w-full sm:w-auto py-3.5 px-8 bg-brand-red hover:bg-brand-darkRed text-white font-extrabold rounded-xl shadow-lg transition-all text-sm flex items-center justify-center space-x-2"
+              >
+                <span>Submit Assessment & Find Hospitals</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         )}
       </form>

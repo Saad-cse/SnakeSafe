@@ -56,25 +56,35 @@ export const SnakePhotoStep: React.FC = () => {
     }
   };
 
-  const handleContinueWithIdentification = () => {
-    if (aiResult) {
-      setSnakeIdentification(aiResult, imagePreview || undefined);
-    } else {
-      // Fallback default identification if skipped
-      setSnakeIdentification({
-        possibleSpecies: 'Unidentified Snake Specimen',
-        possibleGroup: 'Suspected Venomous (Standard Triage)',
-        confidence: 0.50,
-        confidenceLevel: 'Low',
-        venomous: true,
-        antivenomType: 'Polyvalent Antivenom',
-        riskLevel: 'Seek Immediate Clinical Care',
-        keyFeatures: ['Visual observation skipped'],
-        warning: '⚠ This is only an estimate. Do not delay medical treatment.',
-        method: 'PHOTO_AI'
-      }, imagePreview || undefined);
+  const [isSavingId, setIsSavingId] = useState<boolean>(false);
+
+  const handleContinueWithIdentification = async () => {
+    if (isSavingId) return;
+    setIsSavingId(true);
+    try {
+      if (aiResult) {
+        await setSnakeIdentification(aiResult, imagePreview || undefined);
+      } else {
+        // Fallback default identification if skipped
+        await setSnakeIdentification({
+          possibleSpecies: 'Unidentified Snake Specimen',
+          possibleGroup: 'Suspected Venomous (Standard Triage)',
+          confidence: 0.50,
+          confidenceLevel: 'Low',
+          venomous: true,
+          antivenomType: 'Polyvalent Antivenom',
+          riskLevel: 'Seek Immediate Clinical Care',
+          keyFeatures: ['Visual observation skipped'],
+          warning: '⚠ This is only an estimate. Do not delay medical treatment.',
+          method: 'PHOTO_AI'
+        }, imagePreview || undefined);
+      }
+      navigate('/patient/bite-assessment');
+    } catch (err) {
+      console.error('Failed to save snake identification:', err);
+      setErrorMessage("Couldn't save your identification — please try again.");
+      setIsSavingId(false);
     }
-    navigate('/patient/bite-assessment');
   };
 
   const handleSelectSample = (sampleType: 'cobra' | 'viper' | 'krait') => {
@@ -287,10 +297,10 @@ export const SnakePhotoStep: React.FC = () => {
           <div className="mt-6 pt-4 border-t border-slate-100 flex justify-end">
             <button
               onClick={handleContinueWithIdentification}
-              disabled={isAnalyzing}
+              disabled={isAnalyzing || isSavingId}
               className="py-3 px-6 bg-brand-red hover:bg-brand-darkRed text-white font-extrabold rounded-xl shadow-lg transition-all text-sm flex items-center space-x-2"
             >
-              <span>Continue to Bite Assessment</span>
+              <span>{isSavingId ? 'Saving...' : 'Continue to Bite Assessment'}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>

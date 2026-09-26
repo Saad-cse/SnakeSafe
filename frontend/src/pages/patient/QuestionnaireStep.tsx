@@ -59,24 +59,36 @@ export const QuestionnaireStep: React.FC = () => {
     }
   };
 
-  const handleContinue = () => {
-    if (result) {
-      setSnakeIdentification(result);
-    } else {
-      setSnakeIdentification({
-        possibleSpecies: 'Unclassified Snake',
-        possibleGroup: 'Suspected Venomous',
-        confidence: 0.50,
-        confidenceLevel: 'Low',
-        venomous: true,
-        antivenomType: 'Polyvalent Antivenom',
-        riskLevel: 'Seek Immediate Triage',
-        keyFeatures: ['Visual observation recorded'],
-        warning: '⚠ This is only an estimate. Do not delay medical treatment.',
-        method: 'QUESTIONNAIRE'
-      });
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  const handleContinue = async () => {
+    if (isSaving) return;
+    setIsSaving(true);
+    setSaveError(null);
+    try {
+      if (result) {
+        await setSnakeIdentification(result);
+      } else {
+        await setSnakeIdentification({
+          possibleSpecies: 'Unclassified Snake',
+          possibleGroup: 'Suspected Venomous',
+          confidence: 0.50,
+          confidenceLevel: 'Low',
+          venomous: true,
+          antivenomType: 'Polyvalent Antivenom',
+          riskLevel: 'Seek Immediate Triage',
+          keyFeatures: ['Visual observation recorded'],
+          warning: '⚠ This is only an estimate. Do not delay medical treatment.',
+          method: 'QUESTIONNAIRE'
+        });
+      }
+      navigate('/patient/bite-assessment');
+    } catch (err) {
+      console.error('Failed to save snake identification:', err);
+      setSaveError("Couldn't save your answers — please try again.");
+      setIsSaving(false);
     }
-    navigate('/patient/bite-assessment');
   };
 
   return (
@@ -290,12 +302,17 @@ export const QuestionnaireStep: React.FC = () => {
               Estimated: {result.possibleSpecies}
             </p>
 
+            {saveError && (
+              <p className="text-xs text-red-700 font-semibold mt-3">{saveError}</p>
+            )}
+
             <div className="mt-4 pt-3 border-t border-amber-200/60 flex justify-end">
               <button
                 onClick={handleContinue}
-                className="py-3 px-6 bg-brand-red hover:bg-brand-darkRed text-white font-extrabold rounded-xl shadow-lg text-sm flex items-center space-x-2"
+                disabled={isSaving}
+                className="py-3 px-6 bg-brand-red hover:bg-brand-darkRed text-white font-extrabold rounded-xl shadow-lg text-sm flex items-center space-x-2 disabled:opacity-60"
               >
-                <span>Continue to Bite Assessment</span>
+                <span>{isSaving ? 'Saving...' : 'Continue to Bite Assessment'}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>

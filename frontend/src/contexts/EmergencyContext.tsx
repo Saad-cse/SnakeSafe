@@ -24,9 +24,9 @@ interface EmergencyContextType {
   currentStep: number;
   setCurrentStep: (step: number) => void;
   startEmergency: () => void;
-  updateLocation: (latitude: number, longitude: number, address: string) => void;
-  setSnakeIdentification: (data: SnakeIdentificationResult, imageUrl?: string) => void;
-  submitBiteAssessment: (assessment: BiteAssessment) => void;
+  updateLocation: (latitude: number, longitude: number, address: string) => Promise<void>;
+  setSnakeIdentification: (data: SnakeIdentificationResult, imageUrl?: string) => Promise<void>;
+  submitBiteAssessment: (assessment: BiteAssessment) => Promise<void>;
   selectHospital: (hospital: Hospital) => Promise<void>;
   confirmEmergencyRequest: () => Promise<EmergencyCase>;
   requestAmbulance: () => Promise<void>;
@@ -129,22 +129,21 @@ export const EmergencyProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setCurrentStep(2); // Move to Location step
   };
 
-  const updateLocation = (latitude: number, longitude: number, address: string) => {
+  const updateLocation = async (latitude: number, longitude: number, address: string) => {
     if (!activeCaseId) return;
-    ApiService.updateCase(activeCaseId, {
+    await ApiService.updateCase(activeCaseId, {
       latitude,
       longitude,
       address,
       status: 'LOCATION_CONFIRMED'
-    }).then(updated => {
-      reloadAll();
-      setCurrentStep(3); // Move to Snake Photo step
     });
+    reloadAll();
+    setCurrentStep(3); // Move to Snake Photo step
   };
 
-  const setSnakeIdentification = (data: SnakeIdentificationResult, imageUrl?: string) => {
+  const setSnakeIdentification = async (data: SnakeIdentificationResult, imageUrl?: string) => {
     if (!activeCaseId) return;
-    ApiService.updateCase(activeCaseId, {
+    await ApiService.updateCase(activeCaseId, {
       possibleSpecies: data.possibleSpecies,
       possibleGroup: data.possibleGroup,
       confidence: data.confidence,
@@ -152,25 +151,23 @@ export const EmergencyProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       identificationData: data,
       snakeImageUrl: imageUrl,
       status: 'SNAKE_IDENTIFIED'
-    }).then(() => {
-      reloadAll();
-      setCurrentStep(5); // Move to Bite Assessment
     });
+    reloadAll();
+    setCurrentStep(5); // Move to Bite Assessment
   };
 
-  const submitBiteAssessment = (assessment: BiteAssessment) => {
+  const submitBiteAssessment = async (assessment: BiteAssessment) => {
     if (!activeCaseId) return;
-    ApiService.updateCase(activeCaseId, {
+    await ApiService.updateCase(activeCaseId, {
       biteTime: assessment.biteTime,
       biteLocation: assessment.biteLocation,
       symptoms: assessment.symptoms,
       notes: assessment.notes,
       urgencyLevel: assessment.urgencyLevel,
       status: 'BITE_ASSESSMENT_COMPLETE'
-    }).then(() => {
-      reloadAll();
-      setCurrentStep(6); // Move to Hospital Finder
     });
+    reloadAll();
+    setCurrentStep(6); // Move to Hospital Finder
   };
 
   const selectHospital = async (hospital: Hospital) => {

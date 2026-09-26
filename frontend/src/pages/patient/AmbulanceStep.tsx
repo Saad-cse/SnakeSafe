@@ -13,7 +13,9 @@ import {
   Navigation,
   ArrowRight,
   AlertTriangle,
-  Radio
+  Radio,
+  ClipboardList,
+  ChevronRight
 } from 'lucide-react';
 import { EmergencyMap } from '../../components/EmergencyMap';
 import { MedicalWarningBanner } from '../../components/MedicalWarningBanner';
@@ -60,7 +62,7 @@ export const AmbulanceStep: React.FC = () => {
       <div className="text-center mb-6">
         <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-red-50 border border-red-200 text-brand-red text-xs font-bold mb-2">
           <Truck className="w-3.5 h-3.5" />
-          <span>STEP 8 OF 8 (DISPATCH & TRACKING)</span>
+          <span>STEP 4 OF 4 — HELP IS ON THE WAY</span>
         </div>
         <h2 className="text-2xl sm:text-3xl font-black text-slate-900">
           Ambulance Coordination
@@ -202,6 +204,34 @@ export const AmbulanceStep: React.FC = () => {
               </p>
               <p className="text-[10px] text-slate-500">Live GPS telemetry updating</p>
             </div>
+          </div>
+
+          {/* Optional, non-blocking: help the doctor prepare */}
+          <div className="p-4 bg-blue-50/60 rounded-xl border border-blue-100">
+            {activeCase?.possibleSpecies || (activeCase?.symptoms && activeCase.symptoms.length > 0) ? (
+              <div className="flex items-center space-x-2 text-emerald-700">
+                <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+                <span className="text-xs font-bold">
+                  Thanks — the doctor can already see what you've shared so far.
+                </span>
+              </div>
+            ) : (
+              <button
+                onClick={() => navigate('/patient/snake-id')}
+                className="w-full flex items-center justify-between text-left"
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="w-9 h-9 rounded-lg bg-white border border-blue-200 flex items-center justify-center flex-shrink-0">
+                    <ClipboardList className="w-4 h-4 text-brand-blue" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-extrabold text-slate-800">Help the doctor prepare (optional)</p>
+                    <p className="text-[11px] text-slate-500">Snake photo/ID + symptoms — takes ~30 seconds, never delays your ambulance</p>
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-slate-400 flex-shrink-0" />
+              </button>
+            )}
           </div>
 
           {/* Shortcut to see what Doctor/Hospital sees */}

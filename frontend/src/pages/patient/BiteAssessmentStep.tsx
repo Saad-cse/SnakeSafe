@@ -81,7 +81,10 @@ export const BiteAssessmentStep: React.FC = () => {
           notes,
           urgencyLevel: urgency
         });
-        navigate('/patient/hospitals');
+        // Dispatch already happened via Get Help Now — this optional data
+        // just needs to get back to the tracking screen, not forward into
+        // the old hospital-selection flow.
+        navigate('/patient/ambulance');
       } catch (err) {
         console.error('Failed to save bite assessment:', err);
         setShowUrgencyBanner(false);

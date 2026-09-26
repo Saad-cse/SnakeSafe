@@ -14,6 +14,7 @@ import { QuestionnaireStep } from './pages/patient/QuestionnaireStep';
 import { BiteAssessmentStep } from './pages/patient/BiteAssessmentStep';
 import { HospitalFinderStep } from './pages/patient/HospitalFinderStep';
 import { HospitalConfirmStep } from './pages/patient/HospitalConfirmStep';
+import { GetHelpNowStep } from './pages/patient/GetHelpNowStep';
 import { AmbulanceStep } from './pages/patient/AmbulanceStep';
 
 // Hospital, Driver & Admin Pages
@@ -28,15 +29,16 @@ const AppLayout: React.FC = () => {
 
   const isPatientFlow = location.pathname.startsWith('/patient') && location.pathname !== '/patient';
 
-  // Map route to step number
+  // Map route to step number (redesigned 4-step flow: Emergency -> Location
+  // -> Get Help -> Tracking). The optional Snake ID / Questionnaire / Bite
+  // Assessment screens are reachable from Tracking now, so they map to 4 too.
   const getStepFromPath = (path: string): number => {
     if (path.includes('/location')) return 2;
-    if (path.includes('/snake-id')) return 3;
+    if (path.includes('/get-help')) return 3;
+    if (path.includes('/ambulance')) return 4;
+    if (path.includes('/snake-id')) return 4;
     if (path.includes('/questionnaire')) return 4;
-    if (path.includes('/bite-assessment')) return 5;
-    if (path.includes('/hospitals')) return 6;
-    if (path.includes('/confirm-hospital')) return 7;
-    if (path.includes('/ambulance')) return 8;
+    if (path.includes('/bite-assessment')) return 4;
     return 1;
   };
 
@@ -44,11 +46,8 @@ const AppLayout: React.FC = () => {
     switch (stepNum) {
       case 1: navigate('/'); break;
       case 2: navigate('/patient/location'); break;
-      case 3: navigate('/patient/snake-id'); break;
-      case 5: navigate('/patient/bite-assessment'); break;
-      case 6: navigate('/patient/hospitals'); break;
-      case 7: navigate('/patient/confirm-hospital'); break;
-      case 8: navigate('/patient/ambulance'); break;
+      case 3: navigate('/patient/get-help'); break;
+      case 4: navigate('/patient/ambulance'); break;
     }
   };
 
@@ -67,16 +66,24 @@ const AppLayout: React.FC = () => {
       {/* Main Page Routes */}
       <main className="flex-1">
         <Routes>
-          {/* Patient 8 Steps Flow */}
+          {/* Patient Flow — redesigned: Emergency -> Location -> Get Help (dispatch) -> Tracking.
+              Snake ID / Questionnaire / Bite Assessment are now OPTIONAL, reached from the
+              Tracking screen after help is already dispatched — see AmbulanceStep. */}
           <Route path="/" element={<Home />} />
           <Route path="/patient" element={<Navigate to="/" replace />} />
           <Route path="/patient/location" element={<LocationStep />} />
+          <Route path="/patient/get-help" element={<GetHelpNowStep />} />
+          <Route path="/patient/ambulance" element={<AmbulanceStep />} />
+
+          {/* Optional, post-dispatch data collection (not gating) */}
           <Route path="/patient/snake-id" element={<SnakePhotoStep />} />
           <Route path="/patient/questionnaire" element={<QuestionnaireStep />} />
           <Route path="/patient/bite-assessment" element={<BiteAssessmentStep />} />
+
+          {/* Legacy routes kept for now so nothing 404s if linked/bookmarked;
+              no longer part of the primary flow. Safe to remove once confident. */}
           <Route path="/patient/hospitals" element={<HospitalFinderStep />} />
           <Route path="/patient/confirm-hospital" element={<HospitalConfirmStep />} />
-          <Route path="/patient/ambulance" element={<AmbulanceStep />} />
 
           {/* Hospital / Doctor Dashboard */}
           <Route path="/hospital/*" element={<HospitalDashboard />} />

@@ -74,7 +74,7 @@ export const LocationStep: React.FC = () => {
     const finalAddress = manualMode ? manualInput : address;
     try {
       await updateLocation(latitude, longitude, finalAddress);
-      navigate('/patient/snake-id');
+      navigate('/patient/get-help');
     } catch (err) {
       console.error('Failed to save location:', err);
       setErrorMsg("Couldn't save your location — please try again.");

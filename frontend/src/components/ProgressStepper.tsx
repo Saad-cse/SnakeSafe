@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check, AlertCircle, MapPin, Eye, Activity, Building2, CheckCircle2, Ambulance } from 'lucide-react';
+import { Check, AlertCircle, MapPin, Building2, Ambulance } from 'lucide-react';
 
 interface Props {
   currentStep: number;
@@ -7,22 +7,23 @@ interface Props {
 }
 
 export const ProgressStepper: React.FC<Props> = ({ currentStep, onStepClick }) => {
+  // Redesigned to match the new 2-tap-to-help flow: Emergency -> Location ->
+  // Get Help (dispatch) -> Tracking. Snake ID / Questionnaire / Bite
+  // Assessment are optional now and live inside the Tracking phase, so they
+  // no longer get their own steps here.
   const steps = [
     { num: 1, label: 'Emergency', icon: AlertCircle },
     { num: 2, label: 'Location', icon: MapPin },
-    { num: 3, label: 'Snake ID', icon: Eye },
-    { num: 5, label: 'Bite Assessment', icon: Activity },
-    { num: 6, label: 'Hospitals', icon: Building2 },
-    { num: 7, label: 'Confirm', icon: CheckCircle2 },
-    { num: 8, label: 'Ambulance & Track', icon: Ambulance },
+    { num: 3, label: 'Get Help', icon: Building2 },
+    { num: 4, label: 'Tracking', icon: Ambulance },
   ];
 
   return (
     <div className="w-full bg-white border-b border-slate-200 py-3 px-4 shadow-sm overflow-x-auto">
-      <div className="max-w-4xl mx-auto flex items-center justify-between min-w-[550px]">
+      <div className="max-w-4xl mx-auto flex items-center justify-between min-w-[400px]">
         {steps.map((s, idx) => {
-          const isCompleted = currentStep > s.num || (s.num === 3 && (currentStep === 4 || currentStep > 4));
-          const isCurrent = currentStep === s.num || (s.num === 3 && currentStep === 4);
+          const isCompleted = currentStep > s.num;
+          const isCurrent = currentStep === s.num;
           const Icon = s.icon;
 
           return (
@@ -58,7 +59,7 @@ export const ProgressStepper: React.FC<Props> = ({ currentStep, onStepClick }) =
               {idx < steps.length - 1 && (
                 <div
                   className={`flex-1 h-0.5 mx-2 rounded transition-colors duration-200 ${
-                    currentStep > steps[idx + 1].num || (steps[idx + 1].num === 5 && currentStep >= 5)
+                    currentStep > steps[idx + 1].num - 1 && currentStep > s.num
                       ? 'bg-emerald-500'
                       : 'bg-slate-200'
                   }`}

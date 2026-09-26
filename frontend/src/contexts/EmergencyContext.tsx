@@ -28,6 +28,7 @@ interface EmergencyContextType {
   setSnakeIdentification: (data: SnakeIdentificationResult, imageUrl?: string) => Promise<void>;
   submitBiteAssessment: (assessment: BiteAssessment) => Promise<void>;
   selectHospital: (hospital: Hospital) => Promise<void>;
+  dispatchNearestHospital: () => Promise<Hospital>;
   confirmEmergencyRequest: () => Promise<EmergencyCase>;
   requestAmbulance: () => Promise<void>;
   updateCaseStatus: (caseId: string, status: CaseStatus, updatedBy: string, notes?: string) => Promise<void>;
@@ -211,6 +212,25 @@ export const EmergencyProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     reloadAll();
   };
 
+  // One-tap emergency dispatch: picks the nearest capable hospital and runs
+  // select -> confirm -> ambulance request as a single action, so a victim
+  // never has to browse/compare hospitals under duress. Snake ID and bite
+  // details are intentionally NOT required before this runs — that data is
+  // collected afterward, in parallel, via the "help the doctor prepare"
+  // panel on the tracking screen (see AmbulanceStep).
+  const dispatchNearestHospital = async (): Promise<Hospital> => {
+    if (!activeCaseId) throw new Error('No active case');
+    const nearest = [...hospitals].sort(
+      (a, b) => (a.distanceKm || 0) - (b.distanceKm || 0)
+    )[0];
+    if (!nearest) throw new Error('No hospitals available');
+
+    await selectHospital(nearest);
+    await confirmEmergencyRequest();
+    await requestAmbulance();
+    return nearest;
+  };
+
   const updateCaseStatus = async (
     caseId: string,
     status: CaseStatus,
@@ -241,6 +261,7 @@ export const EmergencyProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setSnakeIdentification,
         submitBiteAssessment,
         selectHospital,
+        dispatchNearestHospital,
         confirmEmergencyRequest,
         requestAmbulance,
         updateCaseStatus,
